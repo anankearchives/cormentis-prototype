@@ -1,0 +1,14 @@
+// /cormentis/src/tsconfig.json
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["./*"],
+        "@/components/*": ["../components/*"]
+      }
+    },
+    "include": ["./**/*.ts", "./**/*.tsx"],
+    "exclude": ["node_modules"]
+  }
+  
