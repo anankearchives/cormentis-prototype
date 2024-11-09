@@ -13,6 +13,7 @@ interface AuthPagesProps {
   isDarkMode: boolean;
   onClose: () => void;
   onSuccessfulAuth: (data: AuthSuccessData) => void;
+  isOpen: boolean;
 }
 
 interface AuthSuccessData {
@@ -37,7 +38,7 @@ interface PasswordRequirement {
   validator: (password: string) => boolean;
 }
 
-const AuthPages: React.FC<AuthPagesProps> = ({ isDarkMode, onClose, onSuccessfulAuth }) => {
+const AuthPages: React.FC<AuthPagesProps> = ({ isDarkMode, onClose, onSuccessfulAuth, isOpen }) => {
   // State Management
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [userType, setUserType] = useState<UserType>('jobseeker');
@@ -67,6 +68,7 @@ const AuthPages: React.FC<AuthPagesProps> = ({ isDarkMode, onClose, onSuccessful
     { type: 'jobseeker' as UserType, icon: Briefcase, label: 'Job Seeker' },
     { type: 'employer' as UserType, icon: Building, label: 'Employer' }
   ];
+  
 
   // Effects
   useEffect(() => {
@@ -161,159 +163,176 @@ const AuthPages: React.FC<AuthPagesProps> = ({ isDarkMode, onClose, onSuccessful
     </div>
   );
 
+  if (!isOpen) return null;
+
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} p-4 flex items-center justify-center`}>
-      <div className={`w-full max-w-md rounded-lg ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-white'} shadow-lg`}>
-        <div className="relative p-6">
-          <button
-            onClick={onClose}
-            className="absolute left-4 top-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="text-center text-2xl font-bold text-purple-600 mb-6">Welcome to CorMentis</h2>
+    <>
+      {/* Backdrop with blur effect */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+        onClick={onClose}
+      />
+      
+      {/* Modal Container */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div 
+          className={`w-full max-w-md rounded-lg ${
+            isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-white'
+          } shadow-lg`}
+          onClick={e => e.stopPropagation()} // Prevent clicks from closing the modal
+        >  
 
-          {showSuccess && (
-            <AlertDialog open={showSuccess}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogDescription>
-                    {userType === 'jobseeker' ? 'Successfully logged in!' : 'Account created successfully!'}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+          <div className="relative p-6">
+            <button
+              onClick={onClose}
+              className="absolute left-4 top-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h2 className="text-center text-2xl font-bold text-purple-600 mb-6">Welcome to CorMentis</h2>
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
+            {showSuccess && (
+              <AlertDialog open={showSuccess}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogDescription>
+                      {userType === 'jobseeker' ? 'Successfully logged in!' : 'Account created successfully!'}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
 
-            <TabsContent value="login">
-              <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email Address"
-                    className={getInputClassName(isDarkMode)}
-                    required
-                  />
-                </div>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="register">Register</TabsTrigger>
+              </TabsList>
 
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className={getInputClassName(isDarkMode)}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                >
-                  Sign In
-                </button>
-
-                <div className="relative flex items-center gap-4 py-4">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="text-sm text-gray-500">or continue with</span>
-                  <div className="flex-grow border-t border-gray-300"></div>
-                </div>
-
-                <RenderSocialButtons />
-              </form>
-            </TabsContent>
-
-            <TabsContent value="register">
-              <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
-                <div className="space-y-4 mb-6">
-                  <div className="flex gap-4">
-                    {USER_TYPES.map(({ type, icon: Icon, label }) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setUserType(type)}
-                        className={getUserTypeButtonClassName(userType === type)}
-                      >
-                        <Icon className="w-6 h-6 mx-auto mb-2" />
-                        <div className="text-center">{label}</div>
-                      </button>
-                    ))}
+              <TabsContent value="login">
+                <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email Address"
+                      className={getInputClassName(isDarkMode)}
+                      required
+                    />
                   </div>
-                </div>
 
-                <div className="relative">
-                  <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={userType === 'jobseeker' ? "Full Name" : "Company Name"}
-                    className={getInputClassName(isDarkMode)}
-                    required
-                  />
-                </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                      className={getInputClassName(isDarkMode)}
+                      required
+                    />
+                  </div>
 
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email Address"
-                    className={getInputClassName(isDarkMode)}
-                    required
-                  />
-                </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  >
+                    Sign In
+                  </button>
 
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className={getInputClassName(isDarkMode)}
-                    required
-                  />
-                </div>
+                  <div className="relative flex items-center gap-4 py-4">
+                    <div className="flex-grow border-t border-gray-300"></div>
+                    <span className="text-sm text-gray-500">or continue with</span>
+                    <div className="flex-grow border-t border-gray-300"></div>
+                  </div>
 
-                <RenderPasswordRequirements />
+                  <RenderSocialButtons />
+                </form>
+              </TabsContent>
 
-                <button
-                  type="submit"
-                  disabled={!isPasswordValid}
-                  className={`w-full py-2 px-4 bg-purple-600 text-white rounded-lg 
-                    ${isPasswordValid ? 'hover:bg-purple-700' : 'opacity-50 cursor-not-allowed'}
-                    focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
-                >
-                  Create Account
-                </button>
+              <TabsContent value="register">
+                <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+                  <div className="space-y-4 mb-6">
+                    <div className="flex gap-4">
+                      {USER_TYPES.map(({ type, icon: Icon, label }) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setUserType(type)}
+                          className={getUserTypeButtonClassName(userType === type)}
+                        >
+                          <Icon className="w-6 h-6 mx-auto mb-2" />
+                          <div className="text-center">{label}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                <div className="relative flex items-center gap-4 py-4">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="text-sm text-gray-500">or continue with</span>
-                  <div className="flex-grow border-t border-gray-300"></div>
-                </div>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={userType === 'jobseeker' ? "Full Name" : "Company Name"}
+                      className={getInputClassName(isDarkMode)}
+                      required
+                    />
+                  </div>
 
-                <RenderSocialButtons />
-              </form>
-            </TabsContent>
-          </Tabs>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email Address"
+                      className={getInputClassName(isDarkMode)}
+                      required
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                      className={getInputClassName(isDarkMode)}
+                      required
+                    />
+                  </div>
+
+                  <RenderPasswordRequirements />
+
+                  <button
+                    type="submit"
+                    disabled={!isPasswordValid}
+                    className={`w-full py-2 px-4 bg-purple-600 text-white rounded-lg 
+                      ${isPasswordValid ? 'hover:bg-purple-700' : 'opacity-50 cursor-not-allowed'}
+                      focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                  >
+                    Create Account
+                  </button>
+
+                  <div className="relative flex items-center gap-4 py-4">
+                    <div className="flex-grow border-t border-gray-300"></div>
+                    <span className="text-sm text-gray-500">or continue with</span>
+                    <div className="flex-grow border-t border-gray-300"></div>
+                  </div>
+
+                  <RenderSocialButtons />
+                </form>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
