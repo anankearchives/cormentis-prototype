@@ -30,7 +30,28 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      colors: {
+        customGray: '#272B36',
+        customPurple: '#C685D6',
+        customLightGray: '#2F3340',
+        customLightPurple: '#E3B8E8'
+      },
+      opacity: {
+        '30': '0.3'
+      },
+      transitionProperty: {
+        'blur': 'filter'
+      },
+      backdropBlur: {
+        xs: '2px'
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+  variants: {
+    extend: {
+      opacity: ['group-hover'],
+      blur: ['group-hover'],
+      transform: ['group-hover']
+    }
+  }
+}}
